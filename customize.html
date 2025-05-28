@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customize Copilot Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #0d1117;
+            color: #fff;
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* Circuit board background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, #0d1117 21px, transparent 1%) center,
+                linear-gradient(#0d1117 21px, transparent 1%) center,
+                rgba(0, 112, 243, 0.1);
+            background-size: 22px 22px;
+            z-index: -2;
+        }
+
+        /* Animated gradient background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, 
+                rgba(0, 112, 243, 0.1) 0%,
+                rgba(0, 112, 243, 0.05) 25%,
+                transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(120deg, #0070f3, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 10px rgba(0, 112, 243, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8b949e;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .slideshow-container {
+            max-width: 1000px;
+            margin: 2rem auto 6rem auto;
+            position: relative;
+            min-height: 600px;
+            padding: 0 2rem;
+        }
+
+        .slide {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.5s ease;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            opacity: 0;
+        }
+
+        .slide.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .slide-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slide-header i {
+            font-size: 2rem;
+            color: #0070f3;
+        }
+
+        .slide-header h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin: 0;
+        }
+
+        .example-block {
+            background: rgba(0, 112, 243, 0.1);
+            border-left: 3px solid #0070f3;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .example-block h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #0070f3;
+            white-space: pre-wrap;
+            display: block;
+            margin: 1rem 0;
+        }
+
+        .description {
+            color: #8b949e;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .steps {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .steps li {
+            color: #8b949e;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .steps li::before {
+            content: '→';
+            color: #0070f3;
+        }
+
+        .slide-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            position: absolute;
+            bottom: -3rem;
+            left: 0;
+            right: 0;
+        }
+
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-dot.active {
+            background: #0070f3;
+            transform: scale(1.2);
+        }
+
+        .slide-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #0070f3;
+            cursor: pointer;
+            background: rgba(0, 112, 243, 0.1);
+            border: 2px solid rgba(0, 112, 243, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .slide-arrow:hover {
+            background: rgba(0, 112, 243, 0.2);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .prev-slide {
+            left: -70px;
+        }
+
+        .next-slide {
+            right: -70px;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(0, 112, 243, 0.1);
+            border: 2px solid rgba(0, 112, 243, 0.3);
+            color: #0070f3;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 112, 243, 0.2);
+            border-color: #0070f3;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                padding: 0 20px;
+                bottom: 20px;
+            }
+
+            .slide-arrow {
+                display: none;
+            }
+
+            .slideshow-container {
+                padding: 0 1rem;
+                margin-bottom: 5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Customize Chat Responses</h1>
+        <p class="subtitle">Tailor GitHub Copilot's responses to match your coding style and project requirements</p>
+    </div>
+
+    <div class="slideshow-container">
+        <div class="slide active">
+            <div class="slide-header">
+                <i class="fas fa-file-code"></i>
+                <h2>Workspace Instructions</h2>
+            </div>
+            <p class="description">Create a central instruction file that applies to your entire workspace, ensuring consistent coding standards across all files.</p>
+            <div class="example-block">
+                <h3>TypeScript Standards Example</h3>
+                <code># TypeScript Coding Standards
+
+- Use interfaces over types for objects
+- Prefer const assertions for literals
+- Always use strict null checks
+- Document public APIs with JSDoc
+- Use meaningful variable names
+- Implement proper error handling</code>
+            </div>
+            <ul class="steps">
+                <li>Create <code>.github/copilot-instructions.md</code> in your workspace root</li>
+                <li>Enable with <code>github.copilot.chat.codeGeneration.useInstructionFiles</code> setting</li>
+                <li>Instructions automatically apply to all chat interactions</li>
+                <li>Share standards across your team through version control</li>
+            </ul>
+        </div>
+
+        <div class="slide">
+            <div class="slide-header">
+                <i class="fas fa-folder-tree"></i>
+                <h2>Scoped Instructions</h2>
+            </div>
+            <p class="description">Create targeted instructions that apply to specific file types or project areas, allowing for specialized guidance per technology.</p>
+            <div class="example-block">
+                <h3>React Component Guidelines</h3>
+                <code>---
+applyTo: "**/*.tsx"
+---
+# React Component Guidelines
+
+- Use functional components with hooks
+- Implement proper error boundaries
+- Add comprehensive prop type validation
+- Follow atomic design principles
+- Include accessibility attributes
+- Add data-testid for testing</code>
+            </div>
+            <ul class="steps">
+                <li>Create <code>.instructions.md</code> files in your project</li>
+                <li>Use <code>applyTo</code> to specify file patterns</li>
+                <li>Link related files using markdown references</li>
+                <li>Combine multiple instruction files for complex rules</li>
+            </ul>
+        </div>
+
+        <div class="slide">
+            <div class="slide-header">
+                <i class="fas fa-box-archive"></i>
+                <h2>Component Templates</h2>
+            </div>
+            <p class="description">Create reusable templates for generating common components and patterns in your codebase.</p>
+            <div class="example-block">
+                <h3>React Form Generator</h3>
+                <code>---
+mode: 'agent'
+tools: ['githubRepo']
+---
+Generate a React form with:
+- Form validation using Yup schema
+- Error handling and display
+- Loading states and feedback
+- Accessibility support (ARIA labels)
+- Responsive layout
+- Unit tests
+
+Component name: ${input:formName}
+Fields: ${input:fields}</code>
+            </div>
+            <ul class="steps">
+                <li>Store templates in <code>.github/prompts</code></li>
+                <li>Use variables for dynamic content</li>
+                <li>Specify required tools and modes</li>
+                <li>Include comprehensive documentation</li>
+            </ul>
+        </div>
+
+        <div class="slide">
+            <div class="slide-header">
+                <i class="fas fa-code-branch"></i>
+                <h2>Code Review Templates</h2>
+            </div>
+            <p class="description">Standardize your code review process with comprehensive review templates.</p>
+            <div class="example-block">
+                <h3>Security Review Checklist</h3>
+                <code>---
+mode: 'edit'
+description: 'Security review checklist'
+---
+Review code for:
+- Input validation and sanitization
+- Authentication and authorization
+- SQL injection vulnerabilities
+- Cross-site scripting (XSS) risks
+- API rate limiting implementation
+- Secure data transmission
+- Session management
+- Error handling exposure</code>
+            </div>
+            <ul class="steps">
+                <li>Create specialized review templates</li>
+                <li>Include security best practices</li>
+                <li>Add performance considerations</li>
+                <li>Maintain consistency across reviews</li>
+            </ul>
+        </div>
+
+        <div class="slide-arrow prev-slide">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="slide-arrow next-slide">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+
+        <div class="slide-nav">
+            <div class="slide-dot active"></div>
+            <div class="slide-dot"></div>
+            <div class="slide-dot"></div>
+            <div class="slide-dot"></div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="setup.html" class="nav-btn prev">
+            <i class="fas fa-arrow-left"></i> Back to Setup
+        </a>
+        <a href="chat.html" class="nav-btn next">
+            Next: Chat <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.slide-dot');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            if (index >= totalSlides) index = 0;
+            if (index < 0) index = totalSlides - 1;
+
+            slides.forEach(slide => {
+                slide.style.opacity = '0';
+                setTimeout(() => slide.style.display = 'none', 300);
+            });
+
+            dots.forEach(dot => dot.classList.remove('active'));
+
+            setTimeout(() => {
+                slides[index].style.display = 'block';
+                setTimeout(() => slides[index].style.opacity = '1', 50);
+                dots[index].classList.add('active');
+            }, 300);
+
+            currentSlide = index;
+        }
+
+        document.querySelector('.prev-slide').addEventListener('click', () => showSlide(currentSlide - 1));
+        document.querySelector('.next-slide').addEventListener('click', () => showSlide(currentSlide + 1));
+
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => showSlide(index));
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+            if (e.key === 'ArrowRight') showSlide(currentSlide + 1);
+        });
+
+        // Page transition effect
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                document.body.style.opacity = 0;
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
+            });
+        });
+
+        // Fade in on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+    </script>
+</body>
+</html> 

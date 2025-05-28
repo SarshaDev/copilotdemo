@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Context - GitHub Copilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #0d1117;
+            color: #fff;
+            min-height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* Circuit board background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, #0d1117 21px, transparent 1%) center,
+                linear-gradient(#0d1117 21px, transparent 1%) center,
+                rgba(0, 112, 243, 0.1);
+            background-size: 22px 22px;
+            z-index: -2;
+        }
+
+        /* Animated gradient */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, 
+                rgba(0, 112, 243, 0.1) 0%,
+                rgba(0, 112, 243, 0.05) 25%,
+                transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(120deg, #0070f3, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 10px rgba(0, 112, 243, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8b949e;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .context-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .context-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .context-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #0070f3;
+        }
+
+        .context-card h2 {
+            font-size: 1.5rem;
+            color: #0070f3;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .context-card i {
+            font-size: 1.8rem;
+        }
+
+        .context-card p {
+            color: #8b949e;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            color: #8b949e;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+
+        .feature-list li::before {
+            content: '→';
+            color: #0070f3;
+            flex-shrink: 0;
+        }
+
+        .example-box {
+            background: rgba(0, 112, 243, 0.1);
+            border: 1px solid rgba(0, 112, 243, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            color: #00d4ff;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(0, 112, 243, 0.1);
+            border: 2px solid rgba(0, 112, 243, 0.3);
+            color: #0070f3;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 112, 243, 0.2);
+            border-color: #0070f3;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-buttons {
+                padding: 0 20px;
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Context Management</h1>
+        <p class="subtitle">Learn how to provide the right context to get more accurate and relevant responses from GitHub Copilot</p>
+    </div>
+
+    <div class="container">
+        <div class="context-grid">
+            <div class="context-card">
+                <h2><i class="fas fa-hashtag"></i> #-mentions</h2>
+                <p>Reference specific context items in your chat by using the # symbol.</p>
+                <ul class="feature-list">
+                    <li>Files and folders</li>
+                    <li>Code symbols</li>
+                    <li>Changed files (#changes)</li>
+                    <li>Codebase search (#codebase)</li>
+                </ul>
+                <div class="example-box">
+                    #changes<br>
+                    #codebase<br>
+                    #file.js
+                </div>
+            </div>
+
+            <div class="context-card">
+                <h2><i class="fas fa-at"></i> @-mentions</h2>
+                <p>Direct your questions to domain experts using the @ symbol.</p>
+                <ul class="feature-list">
+                    <li>VS Code expert (@vscode)</li>
+                    <li>Terminal commands (@terminal)</li>
+                    <li>Custom participants</li>
+                </ul>
+                <div class="example-box">
+                    @vscode how to enable word wrap<br>
+                    @terminal list largest files
+                </div>
+            </div>
+
+            <div class="context-card">
+                <h2><i class="fas fa-globe"></i> Web References</h2>
+                <p>Include web content as context in your prompts.</p>
+                <ul class="feature-list">
+                    <li>Fetch web pages (#fetch)</li>
+                    <li>GitHub repo search (#githubRepo)</li>
+                    <li>API documentation</li>
+                </ul>
+                <div class="example-box">
+                    #fetch https://docs.example.com<br>
+                    #githubRepo microsoft/vscode
+                </div>
+            </div>
+
+            <div class="context-card">
+                <h2><i class="fas fa-book"></i> Custom Instructions</h2>
+                <p>Provide consistent guidelines using instruction files.</p>
+                <ul class="feature-list">
+                    <li>Markdown files</li>
+                    <li>Workspace instructions</li>
+                    <li>Profile instructions</li>
+                </ul>
+            </div>
+
+            <div class="context-card">
+                <h2><i class="fas fa-history"></i> Chat History</h2>
+                <p>Maintain context across conversations.</p>
+                <ul class="feature-list">
+                    <li>Multi-turn conversations</li>
+                    <li>Follow-up questions</li>
+                    <li>New chat sessions (⌃L)</li>
+                </ul>
+            </div>
+
+            <div class="context-card">
+                <h2><i class="fas fa-database"></i> Workspace Index</h2>
+                <p>Fast and accurate codebase searching.</p>
+                <ul class="feature-list">
+                    <li>Remote GitHub index</li>
+                    <li>Local semantic index</li>
+                    <li>Basic local index</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="chat.html" class="nav-btn prev">
+            <i class="fas fa-arrow-left"></i> Back to Chat
+        </a>
+        <a href="mcp.html" class="nav-btn next">
+            Next: MCP <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <script>
+        // Page transition effect
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                document.body.style.opacity = 0;
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
+            });
+        });
+
+        // Fade in on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+
+        // Add click handlers for context cards
+        document.querySelectorAll('.context-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html> 

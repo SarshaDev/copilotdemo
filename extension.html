@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copilot Extensions - GitHub Copilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #0d1117;
+            color: #fff;
+            min-height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        .hero {
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 4rem 2rem;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, 
+                    rgba(0, 112, 243, 0.1) 0%,
+                    rgba(0, 212, 255, 0.1) 100%);
+            z-index: -1;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(120deg, #0070f3, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 10px rgba(0, 112, 243, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #8b949e;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .timeline {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(0, 112, 243, 0.3);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4rem;
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-content {
+            width: 45%;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #0070f3;
+        }
+
+        .timeline-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 112, 243, 0.1);
+            border: 2px solid #0070f3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #0070f3;
+            position: relative;
+            z-index: 1;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #0070f3;
+        }
+
+        .summary-card h3 {
+            font-size: 1.5rem;
+            color: #0070f3;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .summary-card p {
+            color: #8b949e;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 112, 243, 0.1);
+            border: 1px solid rgba(0, 112, 243, 0.3);
+            color: #0070f3;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(0, 112, 243, 0.1);
+            border: 2px solid rgba(0, 112, 243, 0.3);
+            color: #0070f3;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 112, 243, 0.2);
+            border-color: #0070f3;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-item {
+                flex-direction: column;
+                margin-left: 30px;
+            }
+
+            .timeline-item:nth-child(even) {
+                flex-direction: column;
+            }
+
+            .timeline-content {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .timeline-icon {
+                margin: 1rem 0;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-buttons {
+                padding: 0 20px;
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Copilot Extensions</h1>
+            <p class="hero-subtitle">Transform GitHub Copilot into a powerful, customized development assistant that works seamlessly across all your IDEs and GitHub workflows.</p>
+        </div>
+    </section>
+
+    <div class="timeline">
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <h3><i class="fas fa-rocket"></i> Build</h3>
+                <p>Create powerful GitHub Apps that extend Copilot's capabilities with custom AI models and enterprise features.</p>
+            </div>
+            <div class="timeline-icon">
+                <i class="fas fa-code"></i>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <h3><i class="fas fa-plug"></i> Integrate</h3>
+                <p>Seamlessly connect with existing workflows, repositories, and development tools across your organization.</p>
+            </div>
+            <div class="timeline-icon">
+                <i class="fas fa-puzzle-piece"></i>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <h3><i class="fas fa-shield-alt"></i> Secure</h3>
+                <p>Implement enterprise-grade security and compliance features while maintaining data privacy.</p>
+            </div>
+            <div class="timeline-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <h3><i class="fas fa-tools"></i> Core Capabilities</h3>
+            <p>Essential features that make Copilot Extensions powerful:</p>
+            <div class="feature-tag">Custom AI Models</div>
+            <div class="feature-tag">Cross-IDE Support</div>
+            <div class="feature-tag">GitHub Integration</div>
+            <div class="feature-tag">Enterprise Ready</div>
+        </div>
+
+        <div class="summary-card">
+            <h3><i class="fas fa-code-branch"></i> Integration Points</h3>
+            <p>Key areas where extensions enhance Copilot:</p>
+            <div class="feature-tag">Code Completion</div>
+            <div class="feature-tag">Pull Requests</div>
+            <div class="feature-tag">Code Reviews</div>
+            <div class="feature-tag">Documentation</div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="models.html" class="nav-btn prev">
+            <i class="fas fa-arrow-left"></i> Back to Models
+        </a>
+        <a href="thankyou.html" class="nav-btn next">
+            Next: Finish <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <script>
+        // Page transition effect
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                document.body.style.opacity = 0;
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
+            });
+        });
+
+        // Fade in on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+    </script>
+</body>
+</html> 

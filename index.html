@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Copilot - Your AI Pair Programmer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .copilot-logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 68, 68, 0.5));
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff4444;
+            text-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+            animation: fadeInUp 2s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        .subtitle {
+            font-size: 2rem;
+            color: #ff4444;
+            text-align: center;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeInUp 2s ease-out 1s forwards;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+        }
+
+        .ide-container {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+            opacity: 0;
+            animation: fadeInUp 2s ease-out 1.5s forwards;
+        }
+
+        .ide-icon {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #ff4444;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 68, 68, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ide-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.6);
+        }
+
+        .ide-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 68, 68, 0.2), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s linear infinite;
+        }
+
+        .ide-name {
+            color: #ff4444;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 10px;
+            text-align: center;
+            text-shadow: 0 0 5px rgba(255, 68, 68, 0.3);
+        }
+
+        .floating-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: float-particle 6s linear infinite;
+            box-shadow: 0 0 4px rgba(255, 68, 68, 0.5);
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            border: 2px solid rgba(255, 68, 68, 0.4);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .pulse-ring:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            animation-delay: -1s;
+        }
+
+        .pulse-ring:nth-child(3) {
+            width: 500px;
+            height: 500px;
+            animation-delay: -2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        @keyframes float-particle {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(0deg);
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        .next-button {
+            z-index: 10;
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            padding: 15px 30px;
+            background: transparent;
+            border: 2px solid #ff4444;
+            color: #ff4444;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 2s ease-out 2s forwards;
+            text-shadow: 0 0 5px rgba(255, 68, 68, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .next-button:hover {
+            background: #ff4444;
+            color: #000000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+        }
+
+        .next-button:visited {
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles"></div>
+    
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring"></div>
+
+    <div class="container">
+        <!-- GitHub Copilot Logo -->
+        <img src="image/logo.png" alt="GitHub Copilot Logo" class="copilot-logo" />
+
+        <h1 class="main-title">GitHub Copilot</h1>
+        <p class="subtitle">Your AI Pair Programmer</p>
+
+        <div class="ide-container">
+            <div class="ide-group">
+                <div class="ide-icon">
+                    <!-- VS Code Icon -->
+                    <img src="image/vscode.png" alt="VS Code" width="60" height="60" />
+                </div>
+                <div class="ide-name">VS Code</div>
+            </div>
+
+            <div class="ide-group">
+                <div class="ide-icon">
+                    <!-- PyCharm Icon -->
+                    <img src="image/pycharm.png" alt="PyCharm" width="60" height="60" />
+                </div>
+                <div class="ide-name">PyCharm</div>
+            </div>
+
+            <div class="ide-group">
+                <div class="ide-icon">
+                    <!-- IntelliJ Icon -->
+                    <img src="image/intellj.png" alt="IntelliJ" width="60" height="60" />
+                    <!-- Consider renaming to image/intellij.png if 'intellj.png' is a typo -->
+                </div>
+                <div class="ide-name">IntelliJ</div>
+            </div>
+        </div>
+    </div>
+
+    <a href="setup.html" class="next-button">Get Started →</a>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.querySelector('.floating-particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Initialize particles when page loads
+        window.addEventListener('load', createParticles);
+
+        // Add click event listener to the Get Started button
+        window.addEventListener('load', function() {
+            const getStartedButton = document.querySelector('.next-button');
+            if (getStartedButton) {
+                getStartedButton.addEventListener('click', function(e) {
+                    console.log('Get Started button clicked!');
+                    // Let the normal link work, but also add backup
+                    setTimeout(() => {
+                        if (window.location.href.indexOf('features.html') === -1) {
+                            console.log('Link failed, trying JavaScript navigation...');
+                            window.location.href = 'features.html';
+                        }
+                    }, 100);
+                });
+            }
+        });
+
+        // Add some interactive effects
+        document.addEventListener('mousemove', (e) => {
+            const rings = document.querySelectorAll('.pulse-ring');
+            rings.forEach((ring, index) => {
+                const speed = (index + 1) * 0.01;
+                const x = (e.clientX - window.innerWidth / 2) * speed;
+                const y = (e.clientY - window.innerHeight / 2) * speed;
+                ring.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+            });
+        });
+    </script>
+</body>
+</html> 

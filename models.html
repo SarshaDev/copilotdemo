@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your AI Model</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #0d1117;
+            color: #fff;
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* Circuit board background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, #0d1117 21px, transparent 1%) center,
+                linear-gradient(#0d1117 21px, transparent 1%) center,
+                rgba(0, 112, 243, 0.1);
+            background-size: 22px 22px;
+            z-index: -2;
+        }
+
+        /* Animated gradient background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, 
+                rgba(0, 112, 243, 0.1) 0%,
+                rgba(0, 112, 243, 0.05) 25%,
+                transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(120deg, #0070f3, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 10px rgba(0, 112, 243, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8b949e;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto 6rem auto;
+            padding: 0 2rem;
+        }
+
+        .quick-select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .quick-select h2 {
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quick-select h2 i {
+            color: #0070f3;
+        }
+
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .recommendation-card {
+            background: rgba(0, 112, 243, 0.1);
+            border: 1px solid rgba(0, 112, 243, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            background: rgba(0, 112, 243, 0.15);
+        }
+
+        .recommendation-card h3 {
+            color: #0070f3;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .recommendation-card p {
+            color: #8b949e;
+            margin-bottom: 1rem;
+        }
+
+        .model-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .model-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .model-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .model-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .model-header i {
+            font-size: 2rem;
+            color: #0070f3;
+        }
+
+        .model-header h3 {
+            color: #fff;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .model-description {
+            color: #8b949e;
+            margin-bottom: 1.5rem;
+        }
+
+        .strength-list {
+            list-style: none;
+        }
+
+        .strength-list li {
+            color: #8b949e;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+
+        .strength-list li::before {
+            content: '→';
+            color: #0070f3;
+            flex-shrink: 0;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(0, 112, 243, 0.1);
+            border: 2px solid rgba(0, 112, 243, 0.3);
+            color: #0070f3;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 112, 243, 0.2);
+            border-color: #0070f3;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                padding: 0 20px;
+                bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Choose Your AI Model</h1>
+        <p class="subtitle">Compare available AI models in GitHub Copilot and select the best one for your specific development needs</p>
+    </div>
+
+    <div class="container">
+        <div class="quick-select">
+            <h2><i class="fas fa-bolt"></i> Quick Recommendations</h2>
+            <div class="recommendation-grid">
+                <div class="recommendation-card">
+                    <h3>Balanced Performance</h3>
+                    <p>For everyday coding tasks with good speed and accuracy</p>
+                    <ul class="strength-list">
+                        <li>GPT-4.1</li>
+                        <li>Claude 3.7 Sonnet</li>
+                    </ul>
+                </div>
+                <div class="recommendation-card">
+                    <h3>Fast & Efficient</h3>
+                    <p>For quick iterations and basic tasks</p>
+                    <ul class="strength-list">
+                        <li>o4-mini</li>
+                        <li>Claude 3.5 Sonnet</li>
+                    </ul>
+                </div>
+                <div class="recommendation-card">
+                    <h3>Complex Tasks</h3>
+                    <p>For deep reasoning and advanced problems</p>
+                    <ul class="strength-list">
+                        <li>GPT-4.5</li>
+                        <li>o3</li>
+                    </ul>
+                </div>
+                <div class="recommendation-card">
+                    <h3>Visual Tasks</h3>
+                    <p>For tasks involving images and UI</p>
+                    <ul class="strength-list">
+                        <li>Gemini 2.0 Flash</li>
+                        <li>GPT-4.1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-select">
+            <h2><i class="fas fa-database"></i> Big Codebase Recommendations</h2>
+            <div class="recommendation-grid">
+                <div class="recommendation-card">
+                    <h3>Documentation</h3>
+                    <p><strong>GPT-4.5</strong></p>
+                    <p>Best for comprehensive documentation due to its superior context understanding and structured output generation.</p>
+                </div>
+                <div class="recommendation-card">
+                    <h3>Test Generation</h3>
+                    <p><strong>Claude 3.7 Sonnet</strong></p>
+                    <p>Excels at understanding complex dependencies and generating thorough test coverage.</p>
+                </div>
+                <div class="recommendation-card">
+                    <h3>Quick Tasks</h3>
+                    <p><strong>o4-mini</strong></p>
+                    <p>Ideal for rapid iterations and small fixes with minimal context loading.</p>
+                </div>
+                <div class="recommendation-card">
+                    <h3>Repo Analysis</h3>
+                    <p><strong>o3</strong></p>
+                    <p>Deep understanding of code architecture and relationships between components.</p>
+                </div>
+                <div class="recommendation-card highlight-card" style="grid-column: 1 / -1; background: rgba(0, 112, 243, 0.15); border: 1px solid rgba(0, 112, 243, 0.5);">
+                    <h3>New Repo Setup</h3>
+                    <p><strong>GPT-4.1</strong></p>
+                    <p>Recommended for new repository setup because it excels at:</p>
+                    <ul class="strength-list" style="margin-top: 0.5rem;">
+                        <li>Creating standardized project structures</li>
+                        <li>Setting up comprehensive CI/CD workflows</li>
+                        <li>Implementing best practices for configuration files</li>
+                        <li>Establishing consistent coding standards</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="model-list">
+            <div class="model-card">
+                <div class="model-header">
+                    <i class="fas fa-rocket"></i>
+                    <h3>GPT-4.1</h3>
+                </div>
+                <p class="model-description">Latest model optimized for real-world development with improved coding capabilities and faster response times.</p>
+                <ul class="strength-list">
+                    <li>Fast and accurate code explanations</li>
+                    <li>Clear documentation generation</li>
+                    <li>Quick bug investigation</li>
+                    <li>Efficient code snippet generation</li>
+                    <li>Strong multilingual support</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <i class="fas fa-brain"></i>
+                    <h3>Claude 3.7 Sonnet</h3>
+                </div>
+                <p class="model-description">Powerful model excelling in structured reasoning and complex codebase analysis.</p>
+                <ul class="strength-list">
+                    <li>Multi-file refactoring expertise</li>
+                    <li>Strong architectural planning</li>
+                    <li>Comprehensive feature development</li>
+                    <li>Advanced algorithm design</li>
+                    <li>Deep analytical insights</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <i class="fas fa-bolt"></i>
+                    <h3>o4-mini</h3>
+                </div>
+                <p class="model-description">Fast, efficient model for quick iterations and basic development tasks.</p>
+                <ul class="strength-list">
+                    <li>Real-time code suggestions</li>
+                    <li>Quick code explanations</li>
+                    <li>Fast concept learning</li>
+                    <li>Efficient prototyping</li>
+                    <li>Low latency responses</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>GPT-4.5</h3>
+                </div>
+                <p class="model-description">Advanced model with superior reasoning and reliability for complex tasks.</p>
+                <ul class="strength-list">
+                    <li>Detailed documentation writing</li>
+                    <li>Complex code generation</li>
+                    <li>In-depth bug investigation</li>
+                    <li>Balanced decision making</li>
+                    <li>Consistent multi-step reasoning</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <i class="fas fa-image"></i>
+                    <h3>Gemini 2.0 Flash</h3>
+                </div>
+                <p class="model-description">High-speed multimodal model optimized for visual tasks and real-time interaction.</p>
+                <ul class="strength-list">
+                    <li>Visual UI analysis</li>
+                    <li>Quick design feedback</li>
+                    <li>Frontend prototyping</li>
+                    <li>Image-based debugging</li>
+                    <li>Fast response times</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <i class="fas fa-code-branch"></i>
+                    <h3>o3</h3>
+                </div>
+                <p class="model-description">Most capable reasoning model in the o-series, ideal for deep coding workflows.</p>
+                <ul class="strength-list">
+                    <li>Advanced code optimization</li>
+                    <li>Complex system debugging</li>
+                    <li>Structured code generation</li>
+                    <li>Detailed code analysis</li>
+                    <li>Comprehensive refactoring</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="mcp.html" class="nav-btn prev">
+            <i class="fas fa-arrow-left"></i> Back to MCP
+        </a>
+        <a href="extension.html" class="nav-btn next">
+            Next: Extension <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <script>
+        // Page transition effect
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                document.body.style.opacity = 0;
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
+            });
+        });
+
+        // Fade in on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+    </script>
+</body>
+</html> 
